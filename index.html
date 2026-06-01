@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GKP State Visualizer</title>
+
+<!-- modern rounded UI font + mono for numerics -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- KaTeX (LaTeX-quality math). Falls back to unicode if offline. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+
+<style>
+:root{
+  --bg:#0a0c10; --bg2:#0e1116; --panel:#13171e; --panel2:#171c25;
+  --bd:#232a35; --bd2:#2e3744; --txt:#e2e6ee; --dim:#97a1b1; --dim2:#646e7e;
+  --amber:#e9b25c; --amber-dim:#7a5c2c; --teal:#5ec4bd; --red:#d65a52; --grn:#74cf97;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --sans:'Outfit',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:
+    radial-gradient(1200px 700px at 85% -12%, #11161f 0%, transparent 60%),
+    linear-gradient(180deg,#0a0c10,#080a0d);
+  color:var(--txt); font-family:var(--sans); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased; letter-spacing:.1px;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 56px}
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-weight:600;font-size:22px;letter-spacing:.2px;margin:0}
+h1 .q{color:var(--amber)}
+.sub{color:var(--dim);font-size:12.5px;font-weight:400}
+.opline{margin:8px 0 22px;color:var(--txt);font-size:15px;border-left:2px solid var(--amber-dim);padding:8px 0 8px 15px;overflow-x:auto}
+.lead{margin:14px 0 4px;color:var(--dim);font-size:14px;font-weight:400}
+
+.layout{display:grid;grid-template-columns:312px 1fr;gap:24px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* ---- cards / controls ---- */
+.card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--bd);border-radius:14px;padding:15px 16px 17px}
+.card+.card{margin-top:15px}
+.card h2{font-weight:600;letter-spacing:.4px;font-size:11px;text-transform:uppercase;color:var(--dim);margin:0 0 13px}
+.ctrl{margin:0 0 13px}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px}
+.ctrl label{font-size:14px;color:var(--txt);display:flex;align-items:center;gap:4px}
+.ctrl label .katex{font-size:1em}
+.unit{color:var(--dim2);font-size:11px;font-family:var(--mono)}
+.box{width:78px;background:var(--bg);border:1px solid var(--bd2);color:var(--amber);font-family:var(--mono);
+  font-size:12.5px;font-weight:500;text-align:right;padding:3px 6px;border-radius:6px;font-variant-numeric:tabular-nums}
+.box:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 1px var(--amber-dim)}
+.box:disabled{opacity:.4}
+.box::-webkit-outer-spin-button,.box::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.box[type=number]{-moz-appearance:textfield}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:var(--bd2);border-radius:3px;outline:none;cursor:pointer;margin:3px 0 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--amber);border:2px solid #15181f;box-shadow:0 0 0 1px var(--amber-dim),0 0 9px rgba(233,178,92,.4);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--amber);border:2px solid #15181f;cursor:pointer}
+input[type=range]:disabled{opacity:.4;cursor:default}
+.derived{background:var(--bg);border:1px dashed var(--bd2);border-radius:9px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px;gap:10px}
+.derived .k{color:var(--dim);font-size:12.5px}
+.derived .v{font-family:var(--mono);color:var(--teal);font-size:13.5px;font-weight:500;font-variant-numeric:tabular-nums}
+.lockrow{display:flex;align-items:center;gap:8px;margin-top:4px;cursor:pointer;user-select:none;color:var(--txt);font-size:13px}
+.lockrow input{accent-color:var(--teal);width:15px;height:15px;cursor:pointer}
+
+/* ---- preset buttons ---- */
+.btns{display:grid;gap:8px}
+.btns.four{grid-template-columns:1fr 1fr}
+button.pre{background:var(--panel2);border:1px solid var(--bd2);color:var(--txt);font-family:var(--sans);
+  font-size:12.5px;font-weight:500;letter-spacing:.2px;padding:9px 8px;border-radius:9px;cursor:pointer;transition:.14s;text-align:center}
+button.pre:hover{border-color:var(--amber-dim);color:var(--amber);background:#1b212b}
+button.pre.active{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 1px rgba(94,196,189,.25)}
+button.pre small{display:block;color:var(--dim2);font-family:var(--mono);font-size:9.5px;margin-top:2px;font-weight:400}
+button.pre:hover small{color:var(--amber-dim)}
+
+/* ---- plot + readout column ---- */
+.rightcol{min-width:0}
+.stage{position:relative}
+#plot{display:block;width:100%;max-width:720px;height:auto;margin:0 auto}
+.busy{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.8px;color:var(--amber);background:rgba(10,12,16,.82);border:1px solid var(--amber-dim);padding:3px 10px;border-radius:99px;opacity:0;transition:opacity .15s;pointer-events:none}
+.busy.on{opacity:1}
+
+/* ---- horizontal readout ---- */
+.readout{max-width:720px;margin:14px auto 0;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--bd);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+@media(max-width:560px){.readout{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--bg2);padding:11px 13px;min-width:0}
+.stat .k{font-size:10px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .k .katex{font-size:1.05em;color:var(--dim);text-transform:none}
+.stat .v{font-family:var(--mono);font-size:17px;font-weight:500;color:var(--txt);font-variant-numeric:tabular-nums;margin-top:3px}
+.stat .v small{font-size:11px;color:var(--dim)}
+.flag{display:block;font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:99px;margin-top:5px;width:fit-content}
+.flag.ng{background:rgba(116,207,151,.13);color:var(--grn);border:1px solid rgba(116,207,151,.3)}
+.flag.g{background:rgba(233,178,92,.12);color:var(--amber);border:1px solid var(--amber-dim)}
+
+.foot{max-width:720px;margin:14px auto 0;color:var(--dim2);font-size:11.5px;line-height:1.65;font-family:var(--mono)}
+a{color:var(--teal);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>GKP State Visualizer</h1>
+    <span class="sub">A small tool I built to understand general GKP lattices.</span>
+  </header>
+  <p class="lead">Finding the ground state of the general GKP-squeezing operator</p>
+  <div class="opline" data-tex="\hat{Q}_G=2\sin^2(c_{11}\hat{x}+c_{12}\hat{p}+d_1)+2\sin^2(c_{21}\hat{x}+c_{22}\hat{p}+d_2),\qquad \det C=\tfrac{\pi}{2},\quad \xi=\min\langle\hat{Q}_G\rangle,\quad [\hat{x},\hat{p}]=i">
+    Q̂_G = 2 sin²(c₁₁x̂+c₁₂p̂+d₁) + 2 sin²(c₂₁x̂+c₂₂p̂+d₂),  det C = π/2,  ξ = min spec Q̂_G,  [x̂,p̂]=i
+  </div>
+
+  <div class="layout">
+    <!-- ============ controls ============ -->
+    <div class="leftcol">
+      <div class="card">
+        <h2>Lattice parameters</h2>
+
+        <div class="ctrl" data-k="c11">
+          <div class="top"><label data-tex="c_{11}">c₁₁</label><input class="box" type="number" inputmode="decimal"></div>
+          <input class="rng" type="range">
+        </div>
+        <div class="ctrl" data-k="c12">
+          <div class="top"><label data-tex="c_{12}">c₁₂</label><input class="box" type="number" inputmode="decimal"></div>
+          <input class="rng" type="range">
+        </div>
+        <div class="ctrl" data-k="c21">
+          <div class="top"><label data-tex="c_{21}">c₂₁</label><input class="box" type="number" inputmode="decimal"></div>
+          <input class="rng" type="range">
+        </div>
+
+        <div class="derived">
+          <span class="k" data-tex="c_{22}=(\pi/2+c_{12}c_{21})/c_{11}">c₂₂ = (π/2 + c₁₂c₂₁)/c₁₁</span>
+          <span class="v" id="c22v">—</span>
+        </div>
+
+        <div class="ctrl" data-k="d1">
+          <div class="top"><label data-tex="d_1">d₁</label><span style="display:flex;align-items:center;gap:5px"><input class="box" type="number" inputmode="decimal"><span class="unit">×π</span></span></div>
+          <input class="rng" type="range">
+        </div>
+        <div class="ctrl" data-k="d2">
+          <div class="top"><label data-tex="d_2">d₂</label><span style="display:flex;align-items:center;gap:5px"><input class="box" type="number" inputmode="decimal"><span class="unit">×π</span></span></div>
+          <input class="rng" type="range">
+        </div>
+        <label class="lockrow"><input type="checkbox" id="lockd"><span data-tex="\text{lock }\Delta=d_2-d_1">lock Δ = d₂−d₁</span></label>
+
+        <div class="ctrl" data-k="etac" style="margin-top:14px;padding-top:13px;border-top:1px solid var(--bd)">
+          <div class="top"><label data-tex="\eta_c\ \text{(channel loss)}">η_c (channel loss)</label><input class="box" type="number" inputmode="decimal"></div>
+          <input class="rng" type="range">
+        </div>
+        <div class="derived"><span class="k" data-tex="V=(1-\eta_c)/2\eta_c">added noise V = (1−η_c)/2η_c</span><span class="v" id="noisev">—</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Lattice presets</h2>
+        <div class="btns four">
+          <button class="pre" data-lat="rect0">Rectangle 0<small>Logical 0</small></button>
+          <button class="pre" data-lat="rect1">Rectangle 1<small>Logical 1</small></button>
+          <button class="pre" data-lat="square">Square<small>Sensor state</small></button>
+          <button class="pre" data-lat="hex">Hexagonal<small>120° lattice</small></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Resolution</h2>
+        <div class="btns four" style="margin-bottom:14px">
+          <button class="pre" data-res="low">Low<small>50², N 30</small></button>
+          <button class="pre" data-res="mid">Mid<small>120², N 46</small></button>
+          <button class="pre" data-res="high">High<small>200², N 60</small></button>
+          <button class="pre" data-res="ultra">Ultra<small>300², N 72</small></button>
+        </div>
+        <div class="ctrl" data-k="N">
+          <div class="top"><label data-tex="N"><span>N</span> <span class="unit">Fock dim</span></label><input class="box" type="number" inputmode="numeric"></div>
+          <input class="rng" type="range">
+        </div>
+        <div class="ctrl" data-k="win">
+          <div class="top"><label>x, p window <span class="unit">±</span></label><input class="box" type="number" inputmode="decimal"></div>
+          <input class="rng" type="range">
+        </div>
+        <div class="derived"><span class="k">grid</span><span class="v" id="gridv">—</span></div>
+      </div>
+    </div>
+
+    <!-- ============ plot + readout ============ -->
+    <div class="rightcol">
+      <div class="stage">
+        <div class="busy" id="busy">computing…</div>
+        <canvas id="plot"></canvas>
+      </div>
+
+      <div class="readout">
+        <div class="stat">
+          <div class="k" data-tex="\xi\ \text{(ground energy)}">ξ (ground energy)</div>
+          <div class="v" id="xi">—</div>
+          <span class="flag" id="ngflag"></span>
+        </div>
+        <div class="stat">
+          <div class="k" data-tex="\xi\ \text{(dB)}">GKP squeezing (dB)</div>
+          <div class="v" id="db">—</div>
+        </div>
+        <div class="stat">
+          <div class="k" data-tex="\bar{n}\ \text{(mean photon)}">n̄ (mean photon)</div>
+          <div class="v" id="nbar">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">Wigner negativity</div>
+          <div class="v" id="neg">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">runtime</div>
+          <div class="v" id="rt">—</div>
+        </div>
+      </div>
+
+      <div class="foot" id="foot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== compute worker ===================== -->
+<script id="worker" type="text/js-worker">
+'use strict';
+
+// ---- associated-Laguerre table + displacement matrix D(gamma) (closed form) ----
+function displacement(N, gr, gi){
+  const z = gr*gr + gi*gi;
+  const r = Math.sqrt(z);
+  const th  = Math.atan2(gi, gr);
+  const th2 = Math.atan2(gi, -gr);
+  const expz = Math.exp(-0.5*z);
+  const logf = new Float64Array(N+1);
+  for(let i=2;i<=N;i++) logf[i]=logf[i-1]+Math.log(i);
+  const Lag = new Array(N);                 // Lag[k] = column of L_a^{(k)}(z)
+  for(let k=0;k<N;k++){
+    const col=new Float64Array(N); col[0]=1;
+    if(N>1) col[1]=1+k-z;
+    for(let a=1;a<N-1;a++) col[a+1]=((2*a+1+k-z)*col[a]-(a+k)*col[a-1])/(a+1);
+    Lag[k]=col;
+  }
+  const re=new Float64Array(N*N), im=new Float64Array(N*N);
+  const rk=new Float64Array(N); rk[0]=1; for(let k=1;k<N;k++) rk[k]=rk[k-1]*r;
+  for(let m=0;m<N;m++) for(let n=0;n<N;n++){
+    let mag,ang;
+    if(m>=n){ const k=m-n; mag=Math.exp(0.5*(logf[n]-logf[m]))*rk[k]*expz*Lag[k][n]; ang=k*th; }
+    else    { const k=n-m; mag=Math.exp(0.5*(logf[m]-logf[n]))*rk[k]*expz*Lag[k][m]; ang=k*th2; }
+    const idx=m*N+n; re[idx]=mag*Math.cos(ang); im[idx]=mag*Math.sin(ang);
+  }
+  return {re,im};
+}
+
+// ---- assemble Q_G under a loss+noise channel (Marek 2024, appendix Eq. 36-39) ----
+//   x→√η x + noise, p→√η p + noise; pure loss expressed as additive noise V=(1-η)/(2η).
+//   Each term: γ_j → √η γ_j  and gets damped by κ_j = exp(-|γ_j|² V) = exp(-2|c_j|² V).
+function buildQ(N,c11,c12,c21,c22,d1,d2,eta){
+  const s2=Math.SQRT2;
+  const V=(1-eta)/(2*eta), se=Math.sqrt(eta);
+  const D1=displacement(N, s2*se*c12, s2*se*c11);   // D(√η γ_1),  γ_1 = √2 (c12 + i c11)
+  const D2=displacement(N, s2*se*c22, s2*se*c21);
+  const k1=Math.exp(-2*(c11*c11+c12*c12)*V);        // κ_1
+  const k2=Math.exp(-2*(c21*c21+c22*c22)*V);        // κ_2
+  const Qr=new Float64Array(N*N), Qi=new Float64Array(N*N);
+  function addT(D,dp,kap){
+    const cd=Math.cos(dp)*kap, sd=Math.sin(dp)*kap; // fold damping κ into e^{±iδ}
+    for(let m=0;m<N;m++) for(let n=0;n<N;n++){
+      const idx=m*N+n, idx2=n*N+m;
+      const a=D.re[idx],  b=D.im[idx];
+      const c=D.re[idx2], d=-D.im[idx2];
+      const t1r=cd*a - sd*b, t1i=cd*b + sd*a;     // κ e^{iδ} D
+      const t2r=cd*c + sd*d, t2i=cd*d - sd*c;     // κ e^{-iδ} D†
+      Qr[idx]+= -0.5*(t1r+t2r);
+      Qi[idx]+= -0.5*(t1i+t2i);
+    }
+  }
+  addT(D1,2*d1,k1); addT(D2,2*d2,k2);
+  for(let m=0;m<N;m++) Qr[m*N+m]+=2;
+  return {Qr,Qi};
+}
+
+// ---- cyclic Jacobi (real symmetric) ----
+function jacobi(A,n){
+  const a=Float64Array.from(A), v=new Float64Array(n*n);
+  for(let i=0;i<n;i++) v[i*n+i]=1;
+  for(let sweep=0;sweep<120;sweep++){
+    let off=0;
+    for(let p=0;p<n;p++) for(let q=p+1;q<n;q++){ const e=a[p*n+q]; off+=e*e; }
+    if(off<1e-22) break;
+    for(let p=0;p<n;p++) for(let q=p+1;q<n;q++){
+      const apq=a[p*n+q]; if(Math.abs(apq)<1e-300) continue;
+      const app=a[p*n+p], aqq=a[q*n+q];
+      const theta=(aqq-app)/(2*apq);
+      const t=(theta===0)?1:(Math.sign(theta)/(Math.abs(theta)+Math.sqrt(theta*theta+1)));
+      const c=1/Math.sqrt(t*t+1), s=t*c;
+      for(let k=0;k<n;k++){ const kp=a[k*n+p],kq=a[k*n+q]; a[k*n+p]=c*kp-s*kq; a[k*n+q]=s*kp+c*kq; }
+      for(let k=0;k<n;k++){ const pk=a[p*n+k],qk=a[q*n+k]; a[p*n+k]=c*pk-s*qk; a[q*n+k]=s*pk+c*qk; }
+      for(let k=0;k<n;k++){ const kp=v[k*n+p],kq=v[k*n+q]; v[k*n+p]=c*kp-s*kq; v[k*n+q]=s*kp+c*kq; }
+    }
+  }
+  const w=new Float64Array(n);
+  for(let i=0;i<n;i++) w[i]=a[i*n+i];
+  return {w,v};
+}
+
+// ---- ground state of complex Hermitian Q via real 2N×2N embedding ----
+function ground(N,Qr,Qi){
+  const M=2*N, A=new Float64Array(M*M);
+  for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+    const qr=Qr[i*N+j], qi=Qi[i*N+j];
+    A[i*M+j]=qr; A[(i+N)*M+(j+N)]=qr;
+    A[i*M+(j+N)]=-qi; A[(i+N)*M+j]=qi;
+  }
+  const {w,v}=jacobi(A,M);
+  let mi=0; for(let k=1;k<M;k++) if(w[k]<w[mi]) mi=k;
+  const re=new Float64Array(N), im=new Float64Array(N);
+  let nrm=0;
+  for(let n=0;n<N;n++){ const a=v[n*M+mi], b=v[(n+N)*M+mi]; re[n]=a; im[n]=b; nrm+=a*a+b*b; }
+  nrm=Math.sqrt(nrm)||1;
+  for(let n=0;n<N;n++){ re[n]/=nrm; im[n]/=nrm; }
+  return {xi:w[mi], re, im};
+}
+
+// ---- Wigner via Clenshaw recursion (complex rho, in-place) ----
+function wigner(N,pr,pi,xs,ps){
+  const g=Math.SQRT2, nx=xs.length, ny=ps.length, tot=nx*ny;
+  const A2r=new Float64Array(tot), A2i=new Float64Array(tot), B=new Float64Array(tot);
+  for(let iy=0;iy<ny;iy++) for(let ix=0;ix<nx;ix++){
+    const idx=iy*nx+ix, ar=g*xs[ix], ai=g*ps[iy];
+    A2r[idx]=ar; A2i[idx]=ai; B[idx]=ar*ar+ai*ai;
+  }
+  const w0r=new Float64Array(tot), w0i=new Float64Array(tot);
+  const lr=new Float64Array(tot), li=new Float64Array(tot);
+  const y0r=new Float64Array(tot), y0i=new Float64Array(tot);
+  const y1r=new Float64Array(tot), y1i=new Float64Array(tot);
+  const cr=new Float64Array(N), ci=new Float64Array(N);
+  { const a=pr[0],b=pi[0],cre=pr[N-1],cim=pi[N-1];
+    const rr=2*(a*cre+b*cim), ii=2*(b*cre-a*cim);
+    for(let i=0;i<tot;i++){ w0r[i]=rr; w0i[i]=ii; } }
+  let L=N-1;
+  while(L>0){
+    L--; const len=N-L, fac=(L>=1)?2:1;
+    for(let k=0;k<len;k++){
+      const a=pr[k],b=pi[k],cre=pr[k+L],cim=pi[k+L];
+      cr[k]=fac*(a*cre+b*cim); ci[k]=fac*(b*cre-a*cim);
+    }
+    wigLaguerre(L,B,cr,ci,len,lr,li,y0r,y0i,y1r,y1i,tot);
+    const invs=1/Math.sqrt(L+1);
+    for(let i=0;i<tot;i++){
+      const wr=w0r[i],wi=w0i[i],ar=A2r[i],ai=A2i[i];
+      w0r[i]=lr[i]+(wr*ar-wi*ai)*invs;
+      w0i[i]=li[i]+(wr*ai+wi*ar)*invs;
+    }
+  }
+  const pref=g*g*0.5/Math.PI, W=new Float64Array(tot);
+  for(let i=0;i<tot;i++) W[i]=w0r[i]*Math.exp(-0.5*B[i])*pref;
+  return {W,nx,ny};
+}
+function wigLaguerre(L,x,cr,ci,n,outr,outi,y0r,y0i,y1r,y1i,tot){
+  if(n===1){ for(let i=0;i<tot;i++){ outr[i]=cr[0]; outi[i]=ci[0]; } return; }
+  if(n===2){ const sd=Math.sqrt(L+1);
+    for(let i=0;i<tot;i++){ const f=(L+1-x[i])/sd; outr[i]=cr[0]-cr[1]*f; outi[i]=ci[0]-ci[1]*f; } return; }
+  for(let i=0;i<tot;i++){ y0r[i]=cr[n-2]; y0i[i]=ci[n-2]; y1r[i]=cr[n-1]; y1i[i]=ci[n-1]; }
+  let k=n;
+  for(let it=3;it<=n;it++){
+    k--;
+    const A=Math.sqrt((k-1)*(L+k-1)/((L+k)*k)), Bd=Math.sqrt((L+k)*k);
+    const ccr=cr[n-it], cci=ci[n-it], lc=L+2*k-1;
+    for(let i=0;i<tot;i++){
+      const o0r=y0r[i],o0i=y0i[i],o1r=y1r[i],o1i=y1i[i];
+      y0r[i]=ccr - o1r*A; y0i[i]=cci - o1i*A;
+      const f=(lc - x[i])/Bd;
+      y1r[i]=o0r - o1r*f; y1i[i]=o0i - o1i*f;
+    }
+  }
+  const sd=Math.sqrt(L+1);
+  for(let i=0;i<tot;i++){ const f=(L+1-x[i])/sd; outr[i]=y0r[i]-y1r[i]*f; outi[i]=y0i[i]-y1i[i]*f; }
+}
+function linspace(a,b,n){ const o=new Float64Array(n),d=(b-a)/(n-1); for(let i=0;i<n;i++)o[i]=a+i*d; return o; }
+
+// ---- worker state ----
+let cache=null;   // {N,re,im}
+
+function computeWigner(xmax, grid){
+  const xs=linspace(-xmax,xmax,grid), ps=linspace(-xmax,xmax,grid);
+  const {W,nx,ny}=wigner(cache.N,cache.re,cache.im,xs,ps);
+  const dx=2*xmax/(nx-1), dp=2*xmax/(ny-1);
+  const Px=new Float64Array(nx), Pp=new Float64Array(ny);
+  let wmax=0, absint=0;
+  for(let iy=0;iy<ny;iy++) for(let ix=0;ix<nx;ix++){
+    const v=W[iy*nx+ix];
+    Px[ix]+=v; Pp[iy]+=v; absint+=Math.abs(v);
+    const av=v<0?-v:v; if(av>wmax) wmax=av;
+  }
+  for(let ix=0;ix<nx;ix++) Px[ix]*=dp;
+  for(let iy=0;iy<ny;iy++) Pp[iy]*=dx;
+  const neg=absint*dx*dp-1;
+  return {W:new Float32Array(W),nx,ny,xmax,Px:Array.from(Px),Pp:Array.from(Pp),wmax,neg};
+}
+
+onmessage=function(e){
+  const m=e.data, t0=performance.now(), grid=m.grid;
+  if(m.type==='full'){
+    const {N,c11,c12,c21,c22,d1,d2,xmax,eta}=m;
+    const {Qr,Qi}=buildQ(N,c11,c12,c21,c22,d1,d2,eta);
+    const {xi,re,im}=ground(N,Qr,Qi);
+    let nbar=0; for(let n=0;n<N;n++) nbar+=n*(re[n]*re[n]+im[n]*im[n]);
+    cache={N,re,im};
+    const wig=computeWigner(xmax,grid);
+    postMessage(Object.assign({type:'result',xi,nbar,rt:performance.now()-t0},wig),[wig.W.buffer]);
+  } else {
+    if(!cache) return;
+    const wig=computeWigner(m.xmax,grid);
+    postMessage(Object.assign({type:'result',rt:performance.now()-t0},wig),[wig.W.buffer]);
+  }
+};
+</script>
+
+<!-- ===================== UI / rendering ===================== -->
+<script>
+'use strict';
+const PI=Math.PI, HALFPI=PI/2, SQ=Math.sqrt(HALFPI);
+
+/* -------- LaTeX rendering (KaTeX with unicode fallback) -------- */
+function renderMath(){
+  if(!window.katex) return;
+  document.querySelectorAll('[data-tex]').forEach(el=>{
+    if(el.dataset.rendered) return;
+    try{ katex.render(el.getAttribute('data-tex'), el,
+      {throwOnError:false, displayMode:false}); el.dataset.rendered='1'; }catch(e){}
+  });
+}
+window.addEventListener('load', renderMath);
+document.addEventListener('DOMContentLoaded', ()=>setTimeout(renderMath,60));
+
+/* -------- composite plot geometry (single canvas, matplotlib-style) -------- */
+const LAY={W:720,H:636, ml:118, mr:92, mt:78, mb:48};
+const WS = LAY.W-LAY.ml-LAY.mr;             // wigner square side (=510)
+const WX0=LAY.ml, WY0=LAY.mt;               // wigner top-left
+const dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+const plot=document.getElementById('plot');
+plot.width=LAY.W*dpr; plot.height=LAY.H*dpr;
+plot.style.maxWidth=LAY.W+'px';
+const g=plot.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+const offCv=document.createElement('canvas');
+
+const css=getComputedStyle(document.documentElement);
+const C_TXT=css.getPropertyValue('--txt').trim()||'#e2e6ee';
+const C_DIM=css.getPropertyValue('--dim').trim()||'#97a1b1';
+const C_AMBER=css.getPropertyValue('--amber').trim()||'#e9b25c';
+const C_TEAL=css.getPropertyValue('--teal').trim()||'#5ec4bd';
+const C_BD=css.getPropertyValue('--bd2').trim()||'#2e3744';
+const MONO='12px "JetBrains Mono",monospace';
+const MONO_S='10px "JetBrains Mono",monospace';
+
+/* RdBu_r diverging colormap (ColorBrewer 11-class) */
+const RdBu=[[5,48,97],[33,102,172],[67,147,195],[146,197,222],[209,229,240],
+            [247,247,247],[253,219,199],[244,165,130],[214,96,77],[178,24,43],[103,0,31]];
+function cmap(t){ t=t<0?0:t>1?1:t; const x=t*(RdBu.length-1),i=Math.floor(x),f=x-i;
+  const a=RdBu[i],b=RdBu[Math.min(i+1,RdBu.length-1)];
+  return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f]; }
+
+function fmtTick(v){ const a=Math.abs(v); return a<1e-9?'0':(v<0?'−':'')+a.toFixed(a<10?1:0); }
+function fmtW(v){ return (v>=0?'+':'−')+Math.abs(v).toFixed(3); }
+function ticks5(max){ return [-max,-max/2,0,max/2,max]; }
+
+function maxArr(a){ let m=0; for(const v of a) if(v>m)m=v; return m||1; }
+
+function drawAll(d){
+  const {W,nx,ny,xmax,wmax,Px,Pp}=d;
+  g.clearRect(0,0,LAY.W,LAY.H);
+
+  /* --- Wigner raster (row 0 = top = +p → source iy = ny-1-r) --- */
+  offCv.width=nx; offCv.height=ny;
+  const octx=offCv.getContext('2d'), img=octx.createImageData(nx,ny);
+  const inv=wmax>0?1/(2*wmax):0;
+  for(let r=0;r<ny;r++){ const iy=ny-1-r;
+    for(let ix=0;ix<nx;ix++){
+      const v=W[iy*nx+ix], c=cmap(0.5+v*inv), o=(r*nx+ix)*4;
+      img.data[o]=c[0]; img.data[o+1]=c[1]; img.data[o+2]=c[2]; img.data[o+3]=255;
+    }
+  }
+  octx.putImageData(img,0,0);
+  g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
+  g.drawImage(offCv,WX0,WY0,WS,WS);
+  g.strokeStyle='rgba(20,24,30,.9)'; g.lineWidth=1; g.strokeRect(WX0+.5,WY0+.5,WS,WS);
+  g.strokeStyle='rgba(255,255,255,.10)';
+  g.beginPath(); g.moveTo(WX0+WS/2,WY0); g.lineTo(WX0+WS/2,WY0+WS);
+  g.moveTo(WX0,WY0+WS/2); g.lineTo(WX0+WS,WY0+WS/2); g.stroke();
+
+  const tk=ticks5(xmax);
+  const toPx=v=>WX0+(v+xmax)/(2*xmax)*WS;
+  const toPy=v=>WY0+(xmax-v)/(2*xmax)*WS;
+
+  /* --- x axis (bottom) --- */
+  g.fillStyle=C_DIM; g.font=MONO; g.textAlign='center'; g.textBaseline='top';
+  g.strokeStyle=C_BD; g.lineWidth=1;
+  for(const t of tk){ const px=toPx(t);
+    g.beginPath(); g.moveTo(px,WY0+WS); g.lineTo(px,WY0+WS+5); g.stroke();
+    g.fillText(fmtTick(t),px,WY0+WS+8); }
+  g.fillStyle=C_TXT; g.font='italic 15px "JetBrains Mono",monospace';
+  g.fillText('x',WX0+WS/2,WY0+WS+26);
+
+  /* --- p axis (left of wigner) --- */
+  g.fillStyle=C_DIM; g.font=MONO; g.textAlign='right'; g.textBaseline='middle';
+  for(const t of tk){ const py=toPy(t);
+    g.beginPath(); g.moveTo(WX0-5,py); g.lineTo(WX0,py); g.stroke();
+    g.fillText(fmtTick(t),WX0-8,py); }
+  g.save(); g.translate(WX0-44,WY0+WS/2); g.rotate(-PI/2);
+  g.fillStyle=C_TXT; g.font='italic 15px "JetBrains Mono",monospace';
+  g.textAlign='center'; g.textBaseline='middle'; g.fillText('p',0,0); g.restore();
+
+  /* --- colorbar (far left) --- */
+  const cbx=46, cbw=16, cbTop=WY0, cbH=WS;
+  for(let r=0;r<cbH;r++){ const c=cmap(1-r/(cbH-1));
+    g.fillStyle='rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')'; g.fillRect(cbx,cbTop+r,cbw,1); }
+  g.strokeStyle='rgba(255,255,255,.18)'; g.strokeRect(cbx+.5,cbTop+.5,cbw,cbH);
+  g.fillStyle=C_DIM; g.font=MONO_S; g.textAlign='right'; g.textBaseline='middle';
+  for(const t of [wmax,wmax/2,0,-wmax/2,-wmax]){ const py=cbTop+(wmax-t)/(2*wmax)*cbH;
+    g.fillText(fmtW(t),cbx-4,py); }
+  g.save(); g.translate(14,cbTop+cbH/2); g.rotate(-PI/2);
+  g.fillStyle=C_DIM; g.font='12px "JetBrains Mono",monospace';
+  g.textAlign='center'; g.textBaseline='middle'; g.fillText('W(x,p)',0,0); g.restore();
+
+  /* --- top marginal P(x) --- */
+  { const n=Px.length, m=maxArr(Px), y0=WY0-12, top=10, hh=y0-top;
+    g.strokeStyle='rgba(255,255,255,.10)'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(WX0,y0); g.lineTo(WX0+WS,y0); g.stroke();
+    g.beginPath(); g.moveTo(WX0,y0);
+    for(let i=0;i<n;i++){ const x=WX0+i/(n-1)*WS, y=y0-Px[i]/m*hh; g.lineTo(x,y); }
+    g.lineTo(WX0+WS,y0); g.closePath(); g.fillStyle='rgba(233,178,92,.13)'; g.fill();
+    g.beginPath();
+    for(let i=0;i<n;i++){ const x=WX0+i/(n-1)*WS, y=y0-Px[i]/m*hh; i?g.lineTo(x,y):g.moveTo(x,y); }
+    g.strokeStyle=C_AMBER; g.lineWidth=1.6; g.stroke();
+    g.fillStyle=C_DIM; g.font=MONO; g.textAlign='left'; g.textBaseline='top';
+    g.fillText('P(x)',WX0+2,8); }
+
+  /* --- right marginal P(p) --- */
+  { const n=Pp.length, m=maxArr(Pp), x0=WX0+WS+10, ww=LAY.W-12-x0;
+    g.strokeStyle='rgba(255,255,255,.10)'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(x0,WY0); g.lineTo(x0,WY0+WS); g.stroke();
+    g.beginPath(); g.moveTo(x0,WY0);
+    for(let i=0;i<n;i++){ const idx=n-1-i, y=WY0+i/(n-1)*WS, x=x0+Pp[idx]/m*ww; g.lineTo(x,y); }
+    g.lineTo(x0,WY0+WS); g.closePath(); g.fillStyle='rgba(94,196,189,.13)'; g.fill();
+    g.beginPath();
+    for(let i=0;i<n;i++){ const idx=n-1-i, y=WY0+i/(n-1)*WS, x=x0+Pp[idx]/m*ww; i?g.lineTo(x,y):g.moveTo(x,y); }
+    g.strokeStyle=C_TEAL; g.lineWidth=1.6; g.stroke();
+    g.save(); g.translate(LAY.W-10,WY0+14); g.rotate(PI/2);
+    g.fillStyle=C_DIM; g.font=MONO; g.textAlign='left'; g.textBaseline='top';
+    g.fillText('P(p)',0,0); g.restore(); }
+}
+
+/* -------- parameters & control metadata -------- */
+const CTRL={
+  c11:{min:0.40,max:2.50,step:0.001,d:3},
+  c12:{min:-2.0,max:2.0,step:0.001,d:3},
+  c21:{min:-2.0,max:2.0,step:0.001,d:3},
+  d1 :{min:0,max:1,step:0.001,d:3},
+  d2 :{min:0,max:1,step:0.001,d:3},
+  etac:{min:0.40,max:1.0,step:0.005,d:3},
+  N  :{min:6,max:90,step:1,d:0},
+  win:{min:3,max:10,step:0.1,d:1},
+};
+const params={c11:SQ,c12:0,c21:0,d1:0,d2:0,etac:1.0,N:46,win:6,grid:120};
+
+const LATTICE={
+  rect0 :{c11:Math.sqrt(PI)/2,c12:0,c21:0,d1:0,d2:0},
+  rect1 :{c11:Math.sqrt(PI)/2,c12:0,c21:0,d1:0,d2:0.5},     // d2 = π/2 (half-period shift; d=π would be identical to rect0)
+  square:{c11:SQ,c12:0,c21:0,d1:0,d2:0},
+  hex   :{c11:0.673387,c12:-1.166340,c21:0.673387,d1:0,d2:0},
+};
+const RES={ low:{grid:50,N:30,win:6}, mid:{grid:120,N:46,win:6.5},
+            high:{grid:200,N:60,win:7}, ultra:{grid:300,N:72,win:8} };
+
+function c22(){ return (HALFPI+params.c12*params.c21)/params.c11; }
+
+/* -------- worker plumbing -------- */
+const blob=new Blob([document.getElementById('worker').textContent],{type:'text/javascript'});
+const worker=new Worker(URL.createObjectURL(blob));
+const busy=document.getElementById('busy');
+let pending=false, queued=null;
+
+function post(type){
+  const msg={type, xmax:params.win, grid:params.grid};
+  if(type==='full') Object.assign(msg,{N:params.N,c11:params.c11,c12:params.c12,c21:params.c21,
+    c22:c22(), d1:params.d1*PI, d2:params.d2*PI, eta:params.etac});
+  if(pending){ queued=type; return; }
+  pending=true; busy.classList.add('on');
+  worker.postMessage(msg);
+}
+let rafId=null;
+function schedule(k){
+  const type=(k==='win')?'wigner':'full';
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId=requestAnimationFrame(()=>post(type));
+}
+
+worker.onmessage=function(e){
+  const d=e.data;
+  drawAll(d);
+  if(d.xi!==undefined){
+    const xi=d.xi;
+    document.getElementById('xi').textContent=xi.toFixed(5);
+    document.getElementById('db').textContent=(-10*Math.log10(Math.max(xi,1e-12))).toFixed(2)+' dB';
+    document.getElementById('nbar').textContent=d.nbar.toFixed(3);
+    const fl=document.getElementById('ngflag');
+    if(xi<1){ fl.className='flag ng'; fl.textContent='non-Gaussian'; }
+    else    { fl.className='flag g';  fl.textContent='Gaussian floor'; }
+  }
+  document.getElementById('neg').textContent=d.neg.toFixed(4);
+  document.getElementById('rt').textContent=d.rt.toFixed(0)+' ms';
+  pending=false; busy.classList.remove('on');
+  if(queued){ const q=queued; queued=null; post(q); }
+};
+
+/* -------- derived readouts -------- */
+function updateDerived(){
+  document.getElementById('c22v').textContent=c22().toFixed(4);
+  const V=(1-params.etac)/(2*params.etac);
+  document.getElementById('noisev').textContent=V.toFixed(4);
+}
+function updateGrid(){ document.getElementById('gridv').textContent=params.grid+' × '+params.grid; }
+
+/* -------- bind slider + number box -------- */
+const controls={};
+function bind(k){
+  const ctrl=document.querySelector('.ctrl[data-k="'+k+'"]');
+  const rng=ctrl.querySelector('.rng'), box=ctrl.querySelector('.box'), meta=CTRL[k];
+  rng.min=box.min=meta.min; rng.max=box.max=meta.max; rng.step=box.step=meta.step;
+  function show(v){ rng.value=v; box.value=(meta.d===0)?String(Math.round(v)):v.toFixed(meta.d); }
+  function commit(v,doPost=true){
+    v=Math.min(meta.max,Math.max(meta.min,v));
+    params[k]=v; show(v);
+    if(k==='c11'||k==='c12'||k==='c21'||k==='etac') updateDerived();
+    if((k==='d1'||k==='d2')&&locked) applyLock(k);
+    clearLatActive();
+    if(doPost) schedule(k);
+  }
+  show(params[k]);
+  rng.addEventListener('input',()=>commit(parseFloat(rng.value)));
+  box.addEventListener('change',()=>{ const v=parseFloat(box.value); if(!isNaN(v)) commit(v); });
+  box.addEventListener('keydown',e=>{ if(e.key==='Enter') box.blur(); });
+  controls[k]={show,commit,rng,box};
+}
+['c11','c12','c21','d1','d2','etac','N','win'].forEach(bind);
+
+/* -------- d2−d1 phase lock -------- */
+let locked=false, dOffset=0;
+const lockEl=document.getElementById('lockd');
+lockEl.addEventListener('change',()=>{
+  locked=lockEl.checked;
+  if(locked) dOffset=params.d2-params.d1;
+  controls.d2.box.disabled=controls.d2.rng.disabled=locked;
+});
+function applyLock(changed){
+  if(changed==='d1'){ const nd2=Math.min(1,Math.max(0,params.d1+dOffset));
+    params.d2=nd2; controls.d2.show(nd2); }
+}
+
+/* -------- presets -------- */
+function clearLatActive(){ document.querySelectorAll('[data-lat]').forEach(b=>b.classList.remove('active')); }
+
+let animId=null;
+function animateTo(target, dur=1000){
+  if(animId) cancelAnimationFrame(animId);
+  const keys=Object.keys(target);
+  const from={}; keys.forEach(k=>from[k]=params[k]);
+  const t0=performance.now();
+  const ease=u=>u*u*u*(u*(u*6-15)+10);     // smootherstep
+  function step(now){
+    const u=Math.min(1,(now-t0)/dur), e=ease(u);
+    keys.forEach(k=>{ const v=from[k]+(target[k]-from[k])*e; params[k]=v; controls[k].show(v); });
+    updateDerived();
+    post('full');                            // coalesced by pending/queued
+    if(u<1) animId=requestAnimationFrame(step);
+    else { animId=null; if(locked) dOffset=params.d2-params.d1; }
+  }
+  animId=requestAnimationFrame(step);
+}
+
+document.querySelectorAll('[data-lat]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    clearLatActive(); btn.classList.add('active');
+    animateTo(LATTICE[btn.dataset.lat]);
+  });
+});
+document.querySelectorAll('[data-res]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const o=RES[btn.dataset.res];
+    params.grid=o.grid; updateGrid();
+    controls.N.show(o.N);  params.N=o.N;
+    controls.win.show(o.win); params.win=o.win;
+    document.querySelectorAll('[data-res]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    schedule('full');
+  });
+});
+
+/* -------- footer note -------- */
+document.getElementById('foot').innerHTML =
+  'Everything runs locally in your browser. ξ→0 as N→∞ for an ideal grid, and ξ&lt;1 certifies non-Gaussianity. '  
+  + 'Channel loss η_c follows the loss/noise model in Marek, PRL 133, 010602 (2024).'
+
+/* -------- init -------- */
+updateDerived(); updateGrid();
+document.querySelector('[data-lat="square"]').classList.add('active');
+document.querySelector('[data-res="mid"]').classList.add('active');
+post('full');
+</script>
+</body>
+</html>

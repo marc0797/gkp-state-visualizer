@@ -5,12 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GKP State Visualizer</title>
 
-<!-- modern rounded UI font + mono for numerics -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- KaTeX (LaTeX-quality math). Falls back to unicode if offline. -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 
@@ -42,7 +40,6 @@ h1 .q{color:var(--amber)}
 .layout{display:grid;grid-template-columns:312px 1fr;gap:24px;align-items:start}
 @media(max-width:900px){.layout{grid-template-columns:1fr}}
 
-/* ---- cards / controls ---- */
 .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--bd);border-radius:14px;padding:15px 16px 17px}
 .card+.card{margin-top:15px}
 .card h2{font-weight:600;letter-spacing:.4px;font-size:11px;text-transform:uppercase;color:var(--dim);margin:0 0 13px}
@@ -68,7 +65,6 @@ input[type=range]:disabled{opacity:.4;cursor:default}
 .lockrow{display:flex;align-items:center;gap:8px;margin-top:4px;cursor:pointer;user-select:none;color:var(--txt);font-size:13px}
 .lockrow input{accent-color:var(--teal);width:15px;height:15px;cursor:pointer}
 
-/* ---- preset buttons ---- */
 .btns{display:grid;gap:8px}
 .btns.four{grid-template-columns:1fr 1fr}
 button.pre{background:var(--panel2);border:1px solid var(--bd2);color:var(--txt);font-family:var(--sans);
@@ -78,14 +74,12 @@ button.pre.active{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 1p
 button.pre small{display:block;color:var(--dim2);font-family:var(--mono);font-size:9.5px;margin-top:2px;font-weight:400}
 button.pre:hover small{color:var(--amber-dim)}
 
-/* ---- plot + readout column ---- */
 .rightcol{min-width:0}
 .stage{position:relative}
 #plot{display:block;width:100%;max-width:720px;height:auto;margin:0 auto}
 .busy{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.8px;color:var(--amber);background:rgba(10,12,16,.82);border:1px solid var(--amber-dim);padding:3px 10px;border-radius:99px;opacity:0;transition:opacity .15s;pointer-events:none}
 .busy.on{opacity:1}
 
-/* ---- horizontal readout ---- */
 .readout{max-width:720px;margin:14px auto 0;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
   background:var(--bd);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
 @media(max-width:560px){.readout{grid-template-columns:repeat(2,1fr)}}
@@ -110,11 +104,10 @@ a{color:var(--teal);text-decoration:none}
   </header>
   <p class="lead">Finding the ground state of the general GKP-squeezing operator</p>
   <div class="opline" data-tex="\hat{Q}_G=2\sin^2(c_{11}\hat{x}+c_{12}\hat{p}+d_1)+2\sin^2(c_{21}\hat{x}+c_{22}\hat{p}+d_2),\qquad \det C=\tfrac{\pi}{2},\quad \xi=\min\langle\hat{Q}_G\rangle,\quad [\hat{x},\hat{p}]=i">
-    Q̂_G = 2 sin²(c₁₁x̂+c₁₂p̂+d₁) + 2 sin²(c₂₁x̂+c₂₂p̂+d₂),  det C = π/2,  ξ = min spec Q̂_G,  [x̂,p̂]=i
+    Q̂_G = 2 sin²(c₁₁x̂+c₁₂p̂+d₁) + 2 sin²(c₂₁x̂+c₂₂p̂+d₂),  det C = π/2,  ξ = min ⟨Q̂_G⟩,  [x̂,p̂]=i
   </div>
 
   <div class="layout">
-    <!-- ============ controls ============ -->
     <div class="leftcol">
       <div class="card">
         <h2>Lattice parameters</h2>
@@ -184,7 +177,6 @@ a{color:var(--teal);text-decoration:none}
       </div>
     </div>
 
-    <!-- ============ plot + readout ============ -->
     <div class="rightcol">
       <div class="stage">
         <div class="busy" id="busy">computing…</div>
@@ -220,11 +212,10 @@ a{color:var(--teal);text-decoration:none}
   </div>
 </div>
 
-<!-- ===================== compute worker ===================== -->
 <script id="worker" type="text/js-worker">
 'use strict';
 
-// ---- associated-Laguerre table + displacement matrix D(gamma) (closed form) ----
+// D(gamma) in the Fock basis, closed form via associated-Laguerre recursion
 function displacement(N, gr, gi){
   const z = gr*gr + gi*gi;
   const r = Math.sqrt(z);
@@ -233,7 +224,7 @@ function displacement(N, gr, gi){
   const expz = Math.exp(-0.5*z);
   const logf = new Float64Array(N+1);
   for(let i=2;i<=N;i++) logf[i]=logf[i-1]+Math.log(i);
-  const Lag = new Array(N);                 // Lag[k] = column of L_a^{(k)}(z)
+  const Lag = new Array(N);
   for(let k=0;k<N;k++){
     const col=new Float64Array(N); col[0]=1;
     if(N>1) col[1]=1+k-z;
@@ -251,25 +242,24 @@ function displacement(N, gr, gi){
   return {re,im};
 }
 
-// ---- assemble Q_G under a loss+noise channel (Marek 2024, appendix Eq. 36-39) ----
-//   x→√η x + noise, p→√η p + noise; pure loss expressed as additive noise V=(1-η)/(2η).
-//   Each term: γ_j → √η γ_j  and gets damped by κ_j = exp(-|γ_j|² V) = exp(-2|c_j|² V).
+// Q_G under a symmetric loss/noise channel: gamma_j -> sqrt(eta) gamma_j,
+// term damped by exp(-2|c_j|^2 V) with V = (1-eta)/(2eta)
 function buildQ(N,c11,c12,c21,c22,d1,d2,eta){
   const s2=Math.SQRT2;
   const V=(1-eta)/(2*eta), se=Math.sqrt(eta);
-  const D1=displacement(N, s2*se*c12, s2*se*c11);   // D(√η γ_1),  γ_1 = √2 (c12 + i c11)
+  const D1=displacement(N, s2*se*c12, s2*se*c11);   // gamma_1 = sqrt2 (c12 + i c11)
   const D2=displacement(N, s2*se*c22, s2*se*c21);
-  const k1=Math.exp(-2*(c11*c11+c12*c12)*V);        // κ_1
-  const k2=Math.exp(-2*(c21*c21+c22*c22)*V);        // κ_2
+  const k1=Math.exp(-2*(c11*c11+c12*c12)*V);
+  const k2=Math.exp(-2*(c21*c21+c22*c22)*V);
   const Qr=new Float64Array(N*N), Qi=new Float64Array(N*N);
   function addT(D,dp,kap){
-    const cd=Math.cos(dp)*kap, sd=Math.sin(dp)*kap; // fold damping κ into e^{±iδ}
+    const cd=Math.cos(dp)*kap, sd=Math.sin(dp)*kap;
     for(let m=0;m<N;m++) for(let n=0;n<N;n++){
       const idx=m*N+n, idx2=n*N+m;
       const a=D.re[idx],  b=D.im[idx];
       const c=D.re[idx2], d=-D.im[idx2];
-      const t1r=cd*a - sd*b, t1i=cd*b + sd*a;     // κ e^{iδ} D
-      const t2r=cd*c + sd*d, t2i=cd*d - sd*c;     // κ e^{-iδ} D†
+      const t1r=cd*a - sd*b, t1i=cd*b + sd*a;
+      const t2r=cd*c + sd*d, t2i=cd*d - sd*c;
       Qr[idx]+= -0.5*(t1r+t2r);
       Qi[idx]+= -0.5*(t1i+t2i);
     }
@@ -279,14 +269,14 @@ function buildQ(N,c11,c12,c21,c22,d1,d2,eta){
   return {Qr,Qi};
 }
 
-// ---- cyclic Jacobi (real symmetric) ----
+// cyclic Jacobi, real symmetric
 function jacobi(A,n){
   const a=Float64Array.from(A), v=new Float64Array(n*n);
   for(let i=0;i<n;i++) v[i*n+i]=1;
   for(let sweep=0;sweep<120;sweep++){
     let off=0;
     for(let p=0;p<n;p++) for(let q=p+1;q<n;q++){ const e=a[p*n+q]; off+=e*e; }
-    if(off<1e-22) break;
+    if(off<1e-24) break;
     for(let p=0;p<n;p++) for(let q=p+1;q<n;q++){
       const apq=a[p*n+q]; if(Math.abs(apq)<1e-300) continue;
       const app=a[p*n+p], aqq=a[q*n+q];
@@ -303,25 +293,49 @@ function jacobi(A,n){
   return {w,v};
 }
 
-// ---- ground state of complex Hermitian Q via real 2N×2N embedding ----
+// |<a|b>|^2 for two complex Fock vectors
+function overlap2(ar,ai,br,bi,N){
+  let or_=0, oi=0;
+  for(let n=0;n<N;n++){ or_+=ar[n]*br[n]+ai[n]*bi[n]; oi+=ar[n]*bi[n]-ai[n]*br[n]; }
+  return or_*or_+oi*oi;
+}
+
+let prevVec=null;   // last displayed ground vector; used to follow one branch across near-degeneracies
+
+// ground state of the complex Hermitian Q via the real 2N x 2N embedding.
+// Near avoided crossings the two lowest states swap, which makes a strict
+// argmin jump; instead we keep the branch with maximal overlap to the previous
+// frame, and fall back to the true minimum on discontinuous changes.
 function ground(N,Qr,Qi){
   const M=2*N, A=new Float64Array(M*M);
   for(let i=0;i<N;i++) for(let j=0;j<N;j++){
     const qr=Qr[i*N+j], qi=Qi[i*N+j];
-    A[i*M+j]=qr; A[(i+N)*M+(j+N)]=qr;
-    A[i*M+(j+N)]=-qi; A[(i+N)*M+j]=qi;
+    A[i*M+j]=qr; A[(i+N)*M+(j+N)]=qr; A[i*M+(j+N)]=-qi; A[(i+N)*M+j]=qi;
   }
   const {w,v}=jacobi(A,M);
-  let mi=0; for(let k=1;k<M;k++) if(w[k]<w[mi]) mi=k;
-  const re=new Float64Array(N), im=new Float64Array(N);
-  let nrm=0;
-  for(let n=0;n<N;n++){ const a=v[n*M+mi], b=v[(n+N)*M+mi]; re[n]=a; im[n]=b; nrm+=a*a+b*b; }
-  nrm=Math.sqrt(nrm)||1;
-  for(let n=0;n<N;n++){ re[n]/=nrm; im[n]/=nrm; }
-  return {xi:w[mi], re, im};
+  const order=[...Array(M).keys()].sort((p,q)=>w[p]-w[q]);
+  const cand=[];
+  for(const k of order){
+    const re=new Float64Array(N), im=new Float64Array(N); let nrm=0;
+    for(let n=0;n<N;n++){ const a=v[n*M+k], b=v[(n+N)*M+k]; re[n]=a; im[n]=b; nrm+=a*a+b*b; }
+    nrm=Math.sqrt(nrm)||1; for(let n=0;n<N;n++){ re[n]/=nrm; im[n]/=nrm; }
+    let dup=false;
+    for(const c of cand) if(overlap2(c.re,c.im,re,im,N)>0.9){ dup=true; break; }   // drop the embedding's iψ twin
+    if(dup) continue;
+    cand.push({xi:w[k],re,im});
+    if(cand.length>=4) break;
+  }
+  let pick=cand[0];
+  if(prevVec && prevVec.N===N){
+    let best=-1;
+    for(const c of cand){ const o=overlap2(prevVec.re,prevVec.im,c.re,c.im,N); if(o>best){ best=o; pick=c; } }
+    if(best<0.5) pick=cand[0];
+  }
+  prevVec={N, re:pick.re, im:pick.im};
+  return {xi:pick.xi, re:pick.re, im:pick.im};
 }
 
-// ---- Wigner via Clenshaw recursion (complex rho, in-place) ----
+// Wigner by Clenshaw recursion, complex rho, in-place buffers
 function wigner(N,pr,pi,xs,ps){
   const g=Math.SQRT2, nx=xs.length, ny=ps.length, tot=nx*ny;
   const A2r=new Float64Array(tot), A2i=new Float64Array(tot), B=new Float64Array(tot);
@@ -378,8 +392,7 @@ function wigLaguerre(L,x,cr,ci,n,outr,outi,y0r,y0i,y1r,y1i,tot){
 }
 function linspace(a,b,n){ const o=new Float64Array(n),d=(b-a)/(n-1); for(let i=0;i<n;i++)o[i]=a+i*d; return o; }
 
-// ---- worker state ----
-let cache=null;   // {N,re,im}
+let cache=null;
 
 function computeWigner(xmax, grid){
   const xs=linspace(-xmax,xmax,grid), ps=linspace(-xmax,xmax,grid);
@@ -402,6 +415,7 @@ onmessage=function(e){
   const m=e.data, t0=performance.now(), grid=m.grid;
   if(m.type==='full'){
     const {N,c11,c12,c21,c22,d1,d2,xmax,eta}=m;
+    if(!cache || cache.N!==N) prevVec=null;        // dimension change: restart branch tracking
     const {Qr,Qi}=buildQ(N,c11,c12,c21,c22,d1,d2,eta);
     const {xi,re,im}=ground(N,Qr,Qi);
     let nbar=0; for(let n=0;n<N;n++) nbar+=n*(re[n]*re[n]+im[n]*im[n]);
@@ -416,27 +430,23 @@ onmessage=function(e){
 };
 </script>
 
-<!-- ===================== UI / rendering ===================== -->
 <script>
 'use strict';
 const PI=Math.PI, HALFPI=PI/2, SQ=Math.sqrt(HALFPI);
 
-/* -------- LaTeX rendering (KaTeX with unicode fallback) -------- */
 function renderMath(){
   if(!window.katex) return;
   document.querySelectorAll('[data-tex]').forEach(el=>{
     if(el.dataset.rendered) return;
-    try{ katex.render(el.getAttribute('data-tex'), el,
-      {throwOnError:false, displayMode:false}); el.dataset.rendered='1'; }catch(e){}
+    try{ katex.render(el.getAttribute('data-tex'), el, {throwOnError:false, displayMode:false}); el.dataset.rendered='1'; }catch(e){}
   });
 }
 window.addEventListener('load', renderMath);
 document.addEventListener('DOMContentLoaded', ()=>setTimeout(renderMath,60));
 
-/* -------- composite plot geometry (single canvas, matplotlib-style) -------- */
 const LAY={W:720,H:636, ml:118, mr:92, mt:78, mb:48};
-const WS = LAY.W-LAY.ml-LAY.mr;             // wigner square side (=510)
-const WX0=LAY.ml, WY0=LAY.mt;               // wigner top-left
+const WS = LAY.W-LAY.ml-LAY.mr;
+const WX0=LAY.ml, WY0=LAY.mt;
 const dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
 const plot=document.getElementById('plot');
 plot.width=LAY.W*dpr; plot.height=LAY.H*dpr;
@@ -453,7 +463,6 @@ const C_BD=css.getPropertyValue('--bd2').trim()||'#2e3744';
 const MONO='12px "JetBrains Mono",monospace';
 const MONO_S='10px "JetBrains Mono",monospace';
 
-/* RdBu_r diverging colormap (ColorBrewer 11-class) */
 const RdBu=[[5,48,97],[33,102,172],[67,147,195],[146,197,222],[209,229,240],
             [247,247,247],[253,219,199],[244,165,130],[214,96,77],[178,24,43],[103,0,31]];
 function cmap(t){ t=t<0?0:t>1?1:t; const x=t*(RdBu.length-1),i=Math.floor(x),f=x-i;
@@ -463,14 +472,12 @@ function cmap(t){ t=t<0?0:t>1?1:t; const x=t*(RdBu.length-1),i=Math.floor(x),f=x
 function fmtTick(v){ const a=Math.abs(v); return a<1e-9?'0':(v<0?'−':'')+a.toFixed(a<10?1:0); }
 function fmtW(v){ return (v>=0?'+':'−')+Math.abs(v).toFixed(3); }
 function ticks5(max){ return [-max,-max/2,0,max/2,max]; }
-
 function maxArr(a){ let m=0; for(const v of a) if(v>m)m=v; return m||1; }
 
 function drawAll(d){
   const {W,nx,ny,xmax,wmax,Px,Pp}=d;
   g.clearRect(0,0,LAY.W,LAY.H);
 
-  /* --- Wigner raster (row 0 = top = +p → source iy = ny-1-r) --- */
   offCv.width=nx; offCv.height=ny;
   const octx=offCv.getContext('2d'), img=octx.createImageData(nx,ny);
   const inv=wmax>0?1/(2*wmax):0;
@@ -492,7 +499,6 @@ function drawAll(d){
   const toPx=v=>WX0+(v+xmax)/(2*xmax)*WS;
   const toPy=v=>WY0+(xmax-v)/(2*xmax)*WS;
 
-  /* --- x axis (bottom) --- */
   g.fillStyle=C_DIM; g.font=MONO; g.textAlign='center'; g.textBaseline='top';
   g.strokeStyle=C_BD; g.lineWidth=1;
   for(const t of tk){ const px=toPx(t);
@@ -501,7 +507,6 @@ function drawAll(d){
   g.fillStyle=C_TXT; g.font='italic 15px "JetBrains Mono",monospace';
   g.fillText('x',WX0+WS/2,WY0+WS+26);
 
-  /* --- p axis (left of wigner) --- */
   g.fillStyle=C_DIM; g.font=MONO; g.textAlign='right'; g.textBaseline='middle';
   for(const t of tk){ const py=toPy(t);
     g.beginPath(); g.moveTo(WX0-5,py); g.lineTo(WX0,py); g.stroke();
@@ -510,7 +515,6 @@ function drawAll(d){
   g.fillStyle=C_TXT; g.font='italic 15px "JetBrains Mono",monospace';
   g.textAlign='center'; g.textBaseline='middle'; g.fillText('p',0,0); g.restore();
 
-  /* --- colorbar (far left) --- */
   const cbx=46, cbw=16, cbTop=WY0, cbH=WS;
   for(let r=0;r<cbH;r++){ const c=cmap(1-r/(cbH-1));
     g.fillStyle='rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')'; g.fillRect(cbx,cbTop+r,cbw,1); }
@@ -522,7 +526,6 @@ function drawAll(d){
   g.fillStyle=C_DIM; g.font='12px "JetBrains Mono",monospace';
   g.textAlign='center'; g.textBaseline='middle'; g.fillText('W(x,p)',0,0); g.restore();
 
-  /* --- top marginal P(x) --- */
   { const n=Px.length, m=maxArr(Px), y0=WY0-12, top=10, hh=y0-top;
     g.strokeStyle='rgba(255,255,255,.10)'; g.lineWidth=1;
     g.beginPath(); g.moveTo(WX0,y0); g.lineTo(WX0+WS,y0); g.stroke();
@@ -535,7 +538,6 @@ function drawAll(d){
     g.fillStyle=C_DIM; g.font=MONO; g.textAlign='left'; g.textBaseline='top';
     g.fillText('P(x)',WX0+2,8); }
 
-  /* --- right marginal P(p) --- */
   { const n=Pp.length, m=maxArr(Pp), x0=WX0+WS+10, ww=LAY.W-12-x0;
     g.strokeStyle='rgba(255,255,255,.10)'; g.lineWidth=1;
     g.beginPath(); g.moveTo(x0,WY0); g.lineTo(x0,WY0+WS); g.stroke();
@@ -550,7 +552,6 @@ function drawAll(d){
     g.fillText('P(p)',0,0); g.restore(); }
 }
 
-/* -------- parameters & control metadata -------- */
 const CTRL={
   c11:{min:0.40,max:2.50,step:0.001,d:3},
   c12:{min:-2.0,max:2.0,step:0.001,d:3},
@@ -565,7 +566,7 @@ const params={c11:SQ,c12:0,c21:0,d1:0,d2:0,etac:1.0,N:46,win:6,grid:120};
 
 const LATTICE={
   rect0 :{c11:Math.sqrt(PI)/2,c12:0,c21:0,d1:0,d2:0},
-  rect1 :{c11:Math.sqrt(PI)/2,c12:0,c21:0,d1:0,d2:0.5},     // d2 = π/2 (half-period shift; d=π would be identical to rect0)
+  rect1 :{c11:Math.sqrt(PI)/2,c12:0,c21:0,d1:0,d2:0.5},
   square:{c11:SQ,c12:0,c21:0,d1:0,d2:0},
   hex   :{c11:0.673387,c12:-1.166340,c21:0.673387,d1:0,d2:0},
 };
@@ -574,7 +575,6 @@ const RES={ low:{grid:50,N:30,win:6}, mid:{grid:120,N:46,win:6.5},
 
 function c22(){ return (HALFPI+params.c12*params.c21)/params.c11; }
 
-/* -------- worker plumbing -------- */
 const blob=new Blob([document.getElementById('worker').textContent],{type:'text/javascript'});
 const worker=new Worker(URL.createObjectURL(blob));
 const busy=document.getElementById('busy');
@@ -613,7 +613,6 @@ worker.onmessage=function(e){
   if(queued){ const q=queued; queued=null; post(q); }
 };
 
-/* -------- derived readouts -------- */
 function updateDerived(){
   document.getElementById('c22v').textContent=c22().toFixed(4);
   const V=(1-params.etac)/(2*params.etac);
@@ -621,7 +620,6 @@ function updateDerived(){
 }
 function updateGrid(){ document.getElementById('gridv').textContent=params.grid+' × '+params.grid; }
 
-/* -------- bind slider + number box -------- */
 const controls={};
 function bind(k){
   const ctrl=document.querySelector('.ctrl[data-k="'+k+'"]');
@@ -644,7 +642,6 @@ function bind(k){
 }
 ['c11','c12','c21','d1','d2','etac','N','win'].forEach(bind);
 
-/* -------- d2−d1 phase lock -------- */
 let locked=false, dOffset=0;
 const lockEl=document.getElementById('lockd');
 lockEl.addEventListener('change',()=>{
@@ -657,7 +654,6 @@ function applyLock(changed){
     params.d2=nd2; controls.d2.show(nd2); }
 }
 
-/* -------- presets -------- */
 function clearLatActive(){ document.querySelectorAll('[data-lat]').forEach(b=>b.classList.remove('active')); }
 
 let animId=null;
@@ -666,12 +662,12 @@ function animateTo(target, dur=1000){
   const keys=Object.keys(target);
   const from={}; keys.forEach(k=>from[k]=params[k]);
   const t0=performance.now();
-  const ease=u=>u*u*u*(u*(u*6-15)+10);     // smootherstep
+  const ease=u=>u*u*u*(u*(u*6-15)+10);
   function step(now){
     const u=Math.min(1,(now-t0)/dur), e=ease(u);
     keys.forEach(k=>{ const v=from[k]+(target[k]-from[k])*e; params[k]=v; controls[k].show(v); });
     updateDerived();
-    post('full');                            // coalesced by pending/queued
+    post('full');
     if(u<1) animId=requestAnimationFrame(step);
     else { animId=null; if(locked) dOffset=params.d2-params.d1; }
   }
@@ -696,12 +692,10 @@ document.querySelectorAll('[data-res]').forEach(btn=>{
   });
 });
 
-/* -------- footer note -------- */
 document.getElementById('foot').innerHTML =
-  'Everything runs locally in your browser. ξ→0 as N→∞ for an ideal grid, and ξ&lt;1 certifies non-Gaussianity. '  
-  + 'Channel loss η_c follows the loss/noise model in Marek, PRL 133, 010602 (2024).'
+  'Everything runs locally in your browser. ξ→0 as N→∞ for an ideal grid, and ξ&lt;1 certifies non-Gaussianity. '
+  + 'Channel loss η_c follows the loss/noise model in Marek, PRL 133, 010602 (2024).';
 
-/* -------- init -------- */
 updateDerived(); updateGrid();
 document.querySelector('[data-lat="square"]').classList.add('active');
 document.querySelector('[data-res="mid"]').classList.add('active');

@@ -28,20 +28,24 @@ body{
     linear-gradient(180deg,#0a0c10,#080a0d);
   color:var(--txt); font-family:var(--sans); font-size:14px; line-height:1.5;
   -webkit-font-smoothing:antialiased; letter-spacing:.1px;
+  display:flex; justify-content:center; align-items:flex-start;
 }
-.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 56px}
+.wrap{width:1368px; padding:26px 24px 56px}
 header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 h1{font-weight:600;font-size:22px;letter-spacing:.2px;margin:0}
 h1 .q{color:var(--amber)}
 .sub{color:var(--dim);font-size:12.5px;font-weight:400}
-.opline{margin:8px 0 22px;color:var(--txt);font-size:15px;border-left:2px solid var(--amber-dim);padding:8px 0 8px 15px;overflow-x:auto}
+.opline{margin:8px 0 5px;color:var(--txt);font-size:15px;border-left:2px solid var(--amber-dim);padding:8px 0 8px 15px;overflow-x:auto}
+.subline{margin:0 0 22px;color:var(--dim);font-size:13px;padding:0 0 0 17px;overflow-x:auto}
 .lead{margin:14px 0 4px;color:var(--dim);font-size:14px;font-weight:400}
 
-.layout{display:grid;grid-template-columns:312px 1fr;gap:24px;align-items:start}
-@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.layout{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:start}
+.controls{display:flex;gap:20px;align-items:stretch}
+.colA,.colB{display:flex;flex-direction:column;gap:15px;width:268px}
+.colA>.card:last-child,.colB>.card:last-child{flex:1}
+.plotcol{min-width:0}
 
 .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--bd);border-radius:14px;padding:15px 16px 17px}
-.card+.card{margin-top:15px}
 .card h2{font-weight:600;letter-spacing:.4px;font-size:11px;text-transform:uppercase;color:var(--dim);margin:0 0 13px}
 .ctrl{margin:0 0 13px}
 .ctrl:last-child{margin-bottom:0}
@@ -59,9 +63,10 @@ input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--amber);border:2px solid #15181f;box-shadow:0 0 0 1px var(--amber-dim),0 0 9px rgba(233,178,92,.4);cursor:pointer}
 input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--amber);border:2px solid #15181f;cursor:pointer}
 input[type=range]:disabled{opacity:.4;cursor:default}
-.derived{background:var(--bg);border:1px dashed var(--bd2);border-radius:9px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px;gap:10px}
-.derived .k{color:var(--dim);font-size:12.5px}
-.derived .v{font-family:var(--mono);color:var(--teal);font-size:13.5px;font-weight:500;font-variant-numeric:tabular-nums}
+.derived{background:var(--bg);border:1px dashed var(--bd2);border-radius:9px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px;gap:10px;flex-wrap:nowrap}
+.derived .k{color:var(--dim);font-size:12.5px;white-space:nowrap}
+.derived .k .katex{font-size:.92em}
+.derived .v{font-family:var(--mono);color:var(--teal);font-size:13.5px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lockrow{display:flex;align-items:center;gap:8px;margin-top:4px;cursor:pointer;user-select:none;color:var(--txt);font-size:13px}
 .lockrow input{accent-color:var(--teal);width:15px;height:15px;cursor:pointer}
 
@@ -74,15 +79,14 @@ button.pre.active{border-color:var(--teal);color:var(--teal);box-shadow:0 0 0 1p
 button.pre small{display:block;color:var(--dim2);font-family:var(--mono);font-size:9.5px;margin-top:2px;font-weight:400}
 button.pre:hover small{color:var(--amber-dim)}
 
-.rightcol{min-width:0}
+.plotcol{min-width:0}
 .stage{position:relative}
-#plot{display:block;width:100%;max-width:720px;height:auto;margin:0 auto}
+#plot{display:block;width:100%;max-width:760px;height:auto;margin:0 auto}
 .busy{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.8px;color:var(--amber);background:rgba(10,12,16,.82);border:1px solid var(--amber-dim);padding:3px 10px;border-radius:99px;opacity:0;transition:opacity .15s;pointer-events:none}
 .busy.on{opacity:1}
 
-.readout{max-width:720px;margin:14px auto 0;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+.readout{max-width:760px;margin:14px auto 0;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
   background:var(--bd);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
-@media(max-width:560px){.readout{grid-template-columns:repeat(2,1fr)}}
 .stat{background:var(--bg2);padding:11px 13px;min-width:0}
 .stat .k{font-size:10px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat .k .katex{font-size:1.05em;color:var(--dim);text-transform:none}
@@ -92,7 +96,7 @@ button.pre:hover small{color:var(--amber-dim)}
 .flag.ng{background:rgba(116,207,151,.13);color:var(--grn);border:1px solid rgba(116,207,151,.3)}
 .flag.g{background:rgba(233,178,92,.12);color:var(--amber);border:1px solid var(--amber-dim)}
 
-.foot{max-width:720px;margin:14px auto 0;color:var(--dim2);font-size:11.5px;line-height:1.65;font-family:var(--mono)}
+.foot{max-width:760px;margin:14px auto 0;color:var(--dim2);font-size:11.5px;line-height:1.65;font-family:var(--mono)}
 a{color:var(--teal);text-decoration:none}
 </style>
 </head>
@@ -103,12 +107,14 @@ a{color:var(--teal);text-decoration:none}
     <span class="sub">A small tool I built to understand general GKP lattices.</span>
   </header>
   <p class="lead">Finding the ground state of the general GKP-squeezing operator</p>
-  <div class="opline" data-tex="\hat{Q}_G=2\sin^2(c_{11}\hat{x}+c_{12}\hat{p}+d_1)+2\sin^2(c_{21}\hat{x}+c_{22}\hat{p}+d_2),\qquad \det C=\tfrac{\pi}{2},\quad \xi=\min\langle\hat{Q}_G\rangle,\quad [\hat{x},\hat{p}]=i">
+  <div class="opline" data-tex="\hat{Q}_G=2\sin^2(c_{11}\hat{x}+c_{12}\hat{p}+d_1)+2\sin^2(c_{21}\hat{x}+c_{22}\hat{p}+d_2),\qquad \det C=\tfrac{\pi}{2},\quad \xi=\min\langle\hat{Q}_G\rangle,\quad [\hat{x},\hat{p}]=i \\ \gamma_j=\sqrt{2}\,(c_{j2}+i\,c_{j1}),\qquad \text{1D slice reduction:}\ (\gamma_1,\gamma_2)\to(r_1,\,-i\pi/r_1)">
     Q̂_G = 2 sin²(c₁₁x̂+c₁₂p̂+d₁) + 2 sin²(c₂₁x̂+c₂₂p̂+d₂),  det C = π/2,  ξ = min ⟨Q̂_G⟩,  [x̂,p̂]=i
+    γⱼ = √2 (c_{j2} + i c_{j1}),   1D slice reduction: (γ₁,γ₂) → (r₁, −iπ/r₁)
   </div>
 
   <div class="layout">
-    <div class="leftcol">
+    <div class="controls">
+    <div class="colA">
       <div class="card">
         <h2>Lattice parameters</h2>
 
@@ -146,7 +152,9 @@ a{color:var(--teal);text-decoration:none}
         </div>
         <div class="derived"><span class="k" data-tex="V=(1-\eta_c)/2\eta_c">added noise V = (1−η_c)/2η_c</span><span class="v" id="noisev">—</span></div>
       </div>
+    </div>
 
+    <div class="colB">
       <div class="card">
         <h2>Lattice presets</h2>
         <div class="btns four">
@@ -154,6 +162,27 @@ a{color:var(--teal);text-decoration:none}
           <button class="pre" data-lat="rect1">Rectangle 1<small>Logical 1</small></button>
           <button class="pre" data-lat="square">Square<small>Sensor state</small></button>
           <button class="pre" data-lat="hex">Hexagonal<small>120° lattice</small></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>1D slice</h2>
+        <label class="lockrow"><input type="checkbox" id="slicelock"><span>lock to 1D slice</span></label>
+
+        <div id="slicebody" style="opacity:.4;pointer-events:none;margin-top:6px">
+          <div class="ctrl" data-k="r1">
+            <div class="top"><label data-tex="r_1">r₁</label><input class="box" type="number" inputmode="decimal"></div>
+            <input class="rng" type="range">
+          </div>
+          <div class="ctrl" data-k="phi">
+            <div class="top"><label data-tex="\varphi\ \text{(gauge rot.)}">φ (gauge rot.)</label><span style="display:flex;align-items:center;gap:5px"><input class="box" type="number" inputmode="decimal"><span class="unit">×π</span></span></div>
+            <input class="rng" type="range">
+          </div>
+          <div class="derived"><span class="k" data-tex="\xi_{\rm opt}\ \text{at }r_1^*">ξ_opt at r₁*</span><span class="v" id="xiopt">—</span></div>
+          <div class="btns" style="grid-template-columns:1fr 1fr">
+            <button class="pre" id="perturbBtn">Perturb</button>
+            <button class="pre" id="relaxBtn">Relax → r₁*</button>
+          </div>
         </div>
       </div>
 
@@ -176,8 +205,9 @@ a{color:var(--teal);text-decoration:none}
         <div class="derived"><span class="k">grid</span><span class="v" id="gridv">—</span></div>
       </div>
     </div>
+    </div>
 
-    <div class="rightcol">
+    <div class="plotcol">
       <div class="stage">
         <div class="busy" id="busy">computing…</div>
         <canvas id="plot"></canvas>
@@ -335,6 +365,57 @@ function ground(N,Qr,Qi){
   return {xi:pick.xi, re:pick.re, im:pick.im};
 }
 
+// strict smallest eigenvalue of Q (no branch tracking) — for slice optimization
+function xiMin(N,Qr,Qi){
+  const M=2*N, A=new Float64Array(M*M);
+  for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+    const qr=Qr[i*N+j], qi=Qi[i*N+j];
+    A[i*M+j]=qr; A[(i+N)*M+(j+N)]=qr; A[i*M+(j+N)]=-qi; A[(i+N)*M+j]=qi;
+  }
+  const {w}=jacobi(A,M);
+  let mn=Infinity; for(let k=0;k<M;k++) if(w[k]<mn) mn=w[k];
+  return mn;
+}
+
+// Q on the 4D slice from (r1, phi):
+//   gamma_1 = r1 e^{i phi},  gamma_2 = (pi/r1) e^{i(phi - pi/2)}  (Im(conj g1 g2) = -pi)
+function buildSlice(N,r1,phi,del1,del2){
+  const g1r=r1*Math.cos(phi), g1i=r1*Math.sin(phi);
+  const a2=Math.PI/r1, ph2=phi-Math.PI/2;
+  const g2r=a2*Math.cos(ph2), g2i=a2*Math.sin(ph2);
+  const D1=displacement(N,g1r,g1i), D2=displacement(N,g2r,g2i);
+  const Qr=new Float64Array(N*N), Qi=new Float64Array(N*N);
+  function addT(D,dp){
+    const cd=Math.cos(dp), sd=Math.sin(dp);
+    for(let m=0;m<N;m++) for(let n=0;n<N;n++){
+      const idx=m*N+n, idx2=n*N+m, a=D.re[idx],b=D.im[idx],c=D.re[idx2],d=-D.im[idx2];
+      const t1r=cd*a-sd*b,t1i=cd*b+sd*a,t2r=cd*c+sd*d,t2i=cd*d-sd*c;
+      Qr[idx]+=-0.5*(t1r+t2r); Qi[idx]+=-0.5*(t1i+t2i);
+    }
+  }
+  addT(D1,del1); addT(D2,del2);
+  for(let m=0;m<N;m++) Qr[m*N+m]+=2;
+  return {Qr,Qi};
+}
+function xiSlice(N,r1,phi,d1,d2){ const {Qr,Qi}=buildSlice(N,r1,phi,2*d1,2*d2); return xiMin(N,Qr,Qi); }
+
+// golden-section min of xi over r1 on the slice; d-pair found once at a probe point
+function sliceOptimum(N,phi){
+  let bd=[0,0], best=Infinity;
+  for(const d1 of [0,Math.PI/2]) for(const d2 of [0,Math.PI/2]){
+    const v=xiSlice(N,1.7,phi,d1,d2); if(v<best){ best=v; bd=[d1,d2]; }
+  }
+  const gr=(Math.sqrt(5)-1)/2; let a=0.6,b=3.0;
+  let c=b-gr*(b-a), d=a+gr*(b-a);
+  let fc=xiSlice(N,c,phi,bd[0],bd[1]), fd=xiSlice(N,d,phi,bd[0],bd[1]);
+  while(b-a>1e-3){
+    if(fc<fd){ b=d; d=c; fd=fc; c=b-gr*(b-a); fc=xiSlice(N,c,phi,bd[0],bd[1]); }
+    else     { a=c; c=d; fc=fd; d=a+gr*(b-a); fd=xiSlice(N,d,phi,bd[0],bd[1]); }
+  }
+  const r=(a+b)/2;
+  return {r1:r, xi:xiSlice(N,r,phi,bd[0],bd[1]), d1:bd[0], d2:bd[1]};
+}
+
 // Wigner by Clenshaw recursion, complex rho, in-place buffers
 function wigner(N,pr,pi,xs,ps){
   const g=Math.SQRT2, nx=xs.length, ny=ps.length, tot=nx*ny;
@@ -422,6 +503,9 @@ onmessage=function(e){
     cache={N,re,im};
     const wig=computeWigner(xmax,grid);
     postMessage(Object.assign({type:'result',xi,nbar,rt:performance.now()-t0},wig),[wig.W.buffer]);
+  } else if(m.type==='sliceopt'){
+    const o=sliceOptimum(m.N, m.phi);
+    postMessage({type:'sliceopt', r1:o.r1, xi:o.xi, d1:o.d1, d2:o.d2, rt:performance.now()-t0});
   } else {
     if(!cache) return;
     const wig=computeWigner(m.xmax,grid);
@@ -450,7 +534,7 @@ const WX0=LAY.ml, WY0=LAY.mt;
 const dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));
 const plot=document.getElementById('plot');
 plot.width=LAY.W*dpr; plot.height=LAY.H*dpr;
-plot.style.maxWidth=LAY.W+'px';
+plot.style.maxWidth='760px';
 const g=plot.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
 const offCv=document.createElement('canvas');
 
@@ -460,8 +544,11 @@ const C_DIM=css.getPropertyValue('--dim').trim()||'#97a1b1';
 const C_AMBER=css.getPropertyValue('--amber').trim()||'#e9b25c';
 const C_TEAL=css.getPropertyValue('--teal').trim()||'#5ec4bd';
 const C_BD=css.getPropertyValue('--bd2').trim()||'#2e3744';
-const MONO='12px "JetBrains Mono",monospace';
-const MONO_S='10px "JetBrains Mono",monospace';
+// LaTeX (Computer Modern) fonts shipped with KaTeX, to match the operator definition
+const F_TICK ='15px "KaTeX_Main",serif';            // axis tick numbers (roman)
+const F_AXIS ='italic 20px "KaTeX_Math","KaTeX_Main",serif';  // x, p
+const F_CBNUM='12px "KaTeX_Main",serif';            // colorbar values
+const F_LBL  ='italic 15px "KaTeX_Main",serif';     // W(x,p), P(x), P(p)
 
 const RdBu=[[5,48,97],[33,102,172],[67,147,195],[146,197,222],[209,229,240],
             [247,247,247],[253,219,199],[244,165,130],[214,96,77],[178,24,43],[103,0,31]];
@@ -499,32 +586,32 @@ function drawAll(d){
   const toPx=v=>WX0+(v+xmax)/(2*xmax)*WS;
   const toPy=v=>WY0+(xmax-v)/(2*xmax)*WS;
 
-  g.fillStyle=C_DIM; g.font=MONO; g.textAlign='center'; g.textBaseline='top';
+  g.fillStyle=C_DIM; g.font=F_TICK; g.textAlign='center'; g.textBaseline='top';
   g.strokeStyle=C_BD; g.lineWidth=1;
   for(const t of tk){ const px=toPx(t);
     g.beginPath(); g.moveTo(px,WY0+WS); g.lineTo(px,WY0+WS+5); g.stroke();
     g.fillText(fmtTick(t),px,WY0+WS+8); }
-  g.fillStyle=C_TXT; g.font='italic 15px "JetBrains Mono",monospace';
+  g.fillStyle=C_TXT; g.font=F_AXIS;
   g.fillText('x',WX0+WS/2,WY0+WS+26);
 
-  g.fillStyle=C_DIM; g.font=MONO; g.textAlign='right'; g.textBaseline='middle';
+  g.fillStyle=C_DIM; g.font=F_TICK; g.textAlign='right'; g.textBaseline='middle';
   for(const t of tk){ const py=toPy(t);
     g.beginPath(); g.moveTo(WX0-5,py); g.lineTo(WX0,py); g.stroke();
     g.fillText(fmtTick(t),WX0-8,py); }
   g.save(); g.translate(WX0-44,WY0+WS/2); g.rotate(-PI/2);
-  g.fillStyle=C_TXT; g.font='italic 15px "JetBrains Mono",monospace';
+  g.fillStyle=C_TXT; g.font=F_AXIS;
   g.textAlign='center'; g.textBaseline='middle'; g.fillText('p',0,0); g.restore();
 
   const cbx=46, cbw=16, cbTop=WY0, cbH=WS;
   for(let r=0;r<cbH;r++){ const c=cmap(1-r/(cbH-1));
     g.fillStyle='rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')'; g.fillRect(cbx,cbTop+r,cbw,1); }
   g.strokeStyle='rgba(255,255,255,.18)'; g.strokeRect(cbx+.5,cbTop+.5,cbw,cbH);
-  g.fillStyle=C_DIM; g.font=MONO_S; g.textAlign='right'; g.textBaseline='middle';
+  g.fillStyle=C_DIM; g.font=F_CBNUM; g.textAlign='right'; g.textBaseline='middle';
   for(const t of [wmax,wmax/2,0,-wmax/2,-wmax]){ const py=cbTop+(wmax-t)/(2*wmax)*cbH;
     g.fillText(fmtW(t),cbx-4,py); }
   g.save(); g.translate(14,cbTop+cbH/2); g.rotate(-PI/2);
-  g.fillStyle=C_DIM; g.font='12px "JetBrains Mono",monospace';
-  g.textAlign='center'; g.textBaseline='middle'; g.fillText('W(x,p)',0,0); g.restore();
+  g.fillStyle=C_DIM; g.font=F_LBL;
+  g.textAlign='center'; g.textBaseline='middle'; g.fillText('',0,0); g.restore();
 
   { const n=Px.length, m=maxArr(Px), y0=WY0-12, top=10, hh=y0-top;
     g.strokeStyle='rgba(255,255,255,.10)'; g.lineWidth=1;
@@ -535,7 +622,7 @@ function drawAll(d){
     g.beginPath();
     for(let i=0;i<n;i++){ const x=WX0+i/(n-1)*WS, y=y0-Px[i]/m*hh; i?g.lineTo(x,y):g.moveTo(x,y); }
     g.strokeStyle=C_AMBER; g.lineWidth=1.6; g.stroke();
-    g.fillStyle=C_DIM; g.font=MONO; g.textAlign='left'; g.textBaseline='top';
+    g.fillStyle=C_DIM; g.font=F_LBL; g.textAlign='left'; g.textBaseline='top';
     g.fillText('P(x)',WX0+2,8); }
 
   { const n=Pp.length, m=maxArr(Pp), x0=WX0+WS+10, ww=LAY.W-12-x0;
@@ -548,7 +635,7 @@ function drawAll(d){
     for(let i=0;i<n;i++){ const idx=n-1-i, y=WY0+i/(n-1)*WS, x=x0+Pp[idx]/m*ww; i?g.lineTo(x,y):g.moveTo(x,y); }
     g.strokeStyle=C_TEAL; g.lineWidth=1.6; g.stroke();
     g.save(); g.translate(LAY.W-10,WY0+14); g.rotate(PI/2);
-    g.fillStyle=C_DIM; g.font=MONO; g.textAlign='left'; g.textBaseline='top';
+    g.fillStyle=C_DIM; g.font=F_LBL; g.textAlign='left'; g.textBaseline='top';
     g.fillText('P(p)',0,0); g.restore(); }
 }
 
@@ -559,10 +646,12 @@ const CTRL={
   d1 :{min:0,max:1,step:0.001,d:3},
   d2 :{min:0,max:1,step:0.001,d:3},
   etac:{min:0.40,max:1.0,step:0.005,d:3},
+  r1 :{min:0.6,max:3.0,step:0.001,d:3},
+  phi:{min:0,max:1,step:0.001,d:3},
   N  :{min:6,max:90,step:1,d:0},
   win:{min:3,max:10,step:0.1,d:1},
 };
-const params={c11:SQ,c12:0,c21:0,d1:0,d2:0,etac:1.0,N:46,win:6,grid:120};
+const params={c11:SQ,c12:0,c21:0,d1:0,d2:0,etac:1.0,r1:Math.sqrt(PI),phi:0,N:46,win:6,grid:120};
 
 const LATTICE={
   rect0 :{c11:Math.sqrt(PI)/2,c12:0,c21:0,d1:0,d2:0},
@@ -573,14 +662,35 @@ const LATTICE={
 const RES={ low:{grid:50,N:30,win:6}, mid:{grid:120,N:46,win:6.5},
             high:{grid:200,N:60,win:7}, ultra:{grid:300,N:72,win:8} };
 
-function c22(){ return (HALFPI+params.c12*params.c21)/params.c11; }
+function c22(){
+  if(sliceLocked){ return sliceCs(params.r1,params.phi).c22; }
+  return (HALFPI+params.c12*params.c21)/params.c11;
+}
+
+// 4D slice (r1, phi) -> c params.  gamma_j = sqrt2 (c_{j2} + i c_{j1}),
+// gamma_1 = r1 e^{i phi}, gamma_2 = (pi/r1) e^{i(phi - pi/2)}.  det C = pi/2 holds for all (r1,phi).
+function sliceCs(r1,phi){
+  const s2=Math.SQRT2, a2=PI/r1;
+  return {
+    c11: r1*Math.sin(phi)/s2,
+    c12: r1*Math.cos(phi)/s2,
+    c21: a2*Math.sin(phi-HALFPI)/s2,   // = -(pi/r1)cos(phi)/sqrt2
+    c22: a2*Math.cos(phi-HALFPI)/s2,   //  derived value matches (pi/r1)sin(phi)/sqrt2
+  };
+}
 
 const blob=new Blob([document.getElementById('worker').textContent],{type:'text/javascript'});
 const worker=new Worker(URL.createObjectURL(blob));
 const busy=document.getElementById('busy');
-let pending=false, queued=null;
+let pending=false, queued=null, lastData=null;
 
 function post(type){
+  if(type==='sliceopt'){
+    if(pending){ queued='sliceopt'; return; }
+    pending=true; busy.classList.add('on');
+    worker.postMessage({type:'sliceopt', N:params.N, phi:params.phi*PI});
+    return;
+  }
   const msg={type, xmax:params.win, grid:params.grid};
   if(type==='full') Object.assign(msg,{N:params.N,c11:params.c11,c12:params.c12,c21:params.c21,
     c22:c22(), d1:params.d1*PI, d2:params.d2*PI, eta:params.etac});
@@ -597,7 +707,9 @@ function schedule(k){
 
 worker.onmessage=function(e){
   const d=e.data;
-  drawAll(d);
+  if(d.type==='sliceopt'){ onSliceOpt(d); pending=false; busy.classList.remove('on');
+    if(queued){ const q=queued; queued=null; post(q); } return; }
+  lastData=d; drawAll(d);
   if(d.xi!==undefined){
     const xi=d.xi;
     document.getElementById('xi').textContent=xi.toFixed(5);
@@ -631,6 +743,8 @@ function bind(k){
     params[k]=v; show(v);
     if(k==='c11'||k==='c12'||k==='c21'||k==='etac') updateDerived();
     if((k==='d1'||k==='d2')&&locked) applyLock(k);
+    if((k==='r1'||k==='phi')){ applySlice(); if(doPost){ schedule('full'); requestSliceOpt(); } return; }
+    if(sliceLocked && (k==='c11'||k==='c12'||k==='c21'||k==='d1'||k==='d2')) markPerturbed();
     clearLatActive();
     if(doPost) schedule(k);
   }
@@ -640,7 +754,7 @@ function bind(k){
   box.addEventListener('keydown',e=>{ if(e.key==='Enter') box.blur(); });
   controls[k]={show,commit,rng,box};
 }
-['c11','c12','c21','d1','d2','etac','N','win'].forEach(bind);
+['c11','c12','c21','d1','d2','etac','r1','phi','N','win'].forEach(bind);
 
 let locked=false, dOffset=0;
 const lockEl=document.getElementById('lockd');
@@ -653,6 +767,100 @@ function applyLock(changed){
   if(changed==='d1'){ const nd2=Math.min(1,Math.max(0,params.d1+dOffset));
     params.d2=nd2; controls.d2.show(nd2); }
 }
+
+/* ---- 1D slice lock ---- */
+let sliceLocked=false;
+const sliceCtrls=['c11','c12','c21','d1','d2'];
+const sliceBody=document.getElementById('slicebody');
+const slUI={ xiopt:document.getElementById('xiopt') };
+
+function setCtrlEnabled(k,on){ controls[k].box.disabled=controls[k].rng.disabled=!on; }
+
+// push the slice c-params (from r1,phi) into params + sliders
+function applySlice(){
+  const c=sliceCs(params.r1,params.phi);
+  params.c11=c.c11; params.c12=c.c12; params.c21=c.c21;
+  controls.c11.show(c.c11); controls.c12.show(c.c12); controls.c21.show(c.c21);
+  updateDerived();
+}
+
+document.getElementById('slicelock').addEventListener('change',e=>{
+  sliceLocked=e.target.checked;
+  sliceBody.style.opacity=sliceLocked?'1':'.4';
+  sliceBody.style.pointerEvents=sliceLocked?'auto':'none';
+  sliceCtrls.forEach(k=>setCtrlEnabled(k,!sliceLocked));   // c/d become outputs while locked
+  if(sliceLocked){ clearLatActive(); applySlice(); schedule('full'); requestSliceOpt(); }
+});
+
+// debounced request for r1* / xi* at current (N, phi)
+let optTimer=null;
+function requestSliceOpt(){ if(!sliceLocked) return; slUI.xiopt.textContent='…';
+  clearTimeout(optTimer); optTimer=setTimeout(()=>post('sliceopt'),120); }
+let lastOpt=null;
+function onSliceOpt(d){ lastOpt={r1:d.r1,xi:d.xi,d1:d.d1/PI,d2:d.d2/PI};
+  slUI.xiopt.textContent=d.xi.toFixed(5)+'  (r₁*='+d.r1.toFixed(3)+')'; }
+
+// perturbation: knock the c/d params off the slice (constraint still held by derived c22)
+function markPerturbed(){ /* state already moved by the c-slider; nothing else needed */ }
+document.getElementById('perturbBtn').addEventListener('click',()=>{
+  if(!sliceLocked) return;
+  const j=(Math.random()*0.18+0.06);                       // ~0.06..0.24 kick
+  params.c11=Math.min(2.5,Math.max(0.4,params.c11+(Math.random()<.5?-1:1)*j));
+  params.c12=params.c12+(Math.random()<.5?-1:1)*j;
+  params.c21=params.c21+(Math.random()<.5?-1:1)*j;
+  controls.c11.show(params.c11); controls.c12.show(params.c12); controls.c21.show(params.c21);
+  updateDerived(); schedule('full');
+});
+
+// two-phase relaxation: (1) project onto slice, (2) slide r1 -> r1*
+let relaxId=null;
+function relaxToOptimum(){
+  if(!sliceLocked) return;
+  if(relaxId) cancelAnimationFrame(relaxId);
+  // recover (r1, phi) from the current (perturbed) gamma_1
+  const g1r=Math.SQRT2*params.c12, g1i=Math.SQRT2*params.c11;
+  let r1p=Math.hypot(g1r,g1i)||params.r1; let phip=Math.atan2(g1i,g1r);
+  r1p=Math.min(CTRL.r1.max,Math.max(CTRL.r1.min,r1p));
+  let phin=phip/PI; phin=Math.min(1,Math.max(0,((phin%2)+2)%2)); // wrap to [0,1]x pi
+  const fromC={c11:params.c11,c12:params.c12,c21:params.c21,d1:params.d1,d2:params.d2};
+  const sc=sliceCs(r1p,phin*PI);
+  const r1star=lastOpt?lastOpt.r1:params.r1;
+  const dOpt=lastOpt?[lastOpt.d1,lastOpt.d2]:[0,0];
+
+  const t0=performance.now(), T1=650, T2=1100;
+  const ease=u=>u*u*u*(u*(u*6-15)+10);
+  function step(now){
+    const t=now-t0;
+    if(t<T1){                                  // phase 1: project to slice (fixed r1p, phin)
+      const e=ease(t/T1);
+      params.c11=fromC.c11+(sc.c11-fromC.c11)*e;
+      params.c12=fromC.c12+(sc.c12-fromC.c12)*e;
+      params.c21=fromC.c21+(sc.c21-fromC.c21)*e;
+      params.d1 =fromC.d1 +(0-fromC.d1)*e;
+      params.d2 =fromC.d2 +(0-fromC.d2)*e;
+      params.r1=r1p; params.phi=phin;
+      controls.c11.show(params.c11); controls.c12.show(params.c12); controls.c21.show(params.c21);
+      controls.d1.show(params.d1); controls.d2.show(params.d2);
+      controls.r1.show(r1p); controls.phi.show(phin);
+      updateDerived(); post('full'); relaxId=requestAnimationFrame(step);
+    } else if(t<T1+T2){                         // phase 2: slide r1 -> r1*, snap d toward optimal sign
+      const e=ease((t-T1)/T2);
+      const r=r1p+(r1star-r1p)*e;
+      params.r1=r; controls.r1.show(r);
+      params.d1=dOpt[0]*e; params.d2=dOpt[1]*e;
+      controls.d1.show(params.d1); controls.d2.show(params.d2);
+      applySlice(); post('full'); relaxId=requestAnimationFrame(step);
+    } else {
+      params.r1=r1star; controls.r1.show(r1star);
+      params.d1=dOpt[0]; params.d2=dOpt[1];
+      controls.d1.show(params.d1); controls.d2.show(params.d2);
+      applySlice(); post('full'); relaxId=null;
+    }
+  }
+  relaxId=requestAnimationFrame(step);
+}
+document.getElementById('relaxBtn').addEventListener('click',relaxToOptimum);
+
 
 function clearLatActive(){ document.querySelectorAll('[data-lat]').forEach(b=>b.classList.remove('active')); }
 
@@ -700,6 +908,27 @@ updateDerived(); updateGrid();
 document.querySelector('[data-lat="square"]').classList.add('active');
 document.querySelector('[data-res="mid"]').classList.add('active');
 post('full');
+
+// redraw once the KaTeX (Computer Modern) fonts are available, so canvas labels use them
+function loadMathFonts(){
+  if(!document.fonts || !document.fonts.load) return Promise.resolve();
+  return Promise.all([
+    document.fonts.load('italic 20px "KaTeX_Math"'),
+    document.fonts.load('15px "KaTeX_Main"'),
+    document.fonts.load('italic 15px "KaTeX_Main"')
+  ]).catch(()=>{});
+}
+loadMathFonts().then(()=>{ if(lastData) drawAll(lastData); });
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ if(lastData) drawAll(lastData); });
+
+// scale the whole UI proportionally to the window (identical layout, just zoomed to fit)
+const wrapEl=document.querySelector('.wrap');
+function fitScreen(){
+  const z=Math.max(0.30, Math.min(1.15, window.innerWidth/1368));
+  wrapEl.style.zoom=z;
+}
+window.addEventListener('resize',fitScreen);
+fitScreen();
 </script>
 </body>
 </html>
